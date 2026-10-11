@@ -15,7 +15,7 @@ Paths by Zapier (request_status)
    |-- Fallback --> Google Sheets (requires_human=true, routing=human_review) --> Gmail للمنظّمة
 ```
 
-## ليش كل خطوة
+##سبب كل خطوة
 - Google Form: مصدر بيانات واحد ونقطة دخول واضحة.
 - Trigger: بيبدأ الأتمتة مع كل رد جديد.
 - AI: بيحوّل النص الحر لبيانات منظمة.
@@ -24,7 +24,6 @@ Paths by Zapier (request_status)
 - Google Sheets: سجل للتتبع والاختبار.
 - Gmail: بنبلّغ الشخص المناسب.
 
-استخدمت Fallback بدل Filter لأني ما بدي أوقف الطلبات الناقصة.
 
 ## AI Prompt
 ```
