@@ -35,5 +35,5 @@ meeting_title, organizer_name, organizer_email, attendees_email, meeting_date, m
 - AI ممنوع يخمّن.
 - VALID بس إذا الحقول الثلاثة موجودة وواضحة.
 
-## ملاحظة عن القيمة الفاضية
+## ملاحظة عن القيمة الفارغة
 كان تصميمي إن الحقل الناقص يرجع بكلمة NOT_PROVIDED. بالتنفيذ الفعلي الحقل الناقص بيطلع فاضي في الـ Sheet. التفاصيل في `06-implementation.md`.
