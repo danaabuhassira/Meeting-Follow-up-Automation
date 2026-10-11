@@ -1,50 +1,88 @@
-# 06 - Implementation
+# 06 - التنفيذ (Implementation)
 
-هاد اللي بنيته فعليًا على Zapier.
+يوثّق هذا القسم ما تم بناؤه فعليًا باستخدام Zapier، والخطوات التي نُفِّذت، ونتائج الاختبارات، والمشكلات التي ظهرت أثناء التنفيذ وكيفية التعامل معها.
 
-## الأدوات
-- Google Form: Meeting Follow-up Form. الرابط: https://forms.gle/2kLSZj3ZvfAJ6AAZ6
-- Google Sheet: Meeting Follow-up Records (15 عمود). الرابط: https://docs.google.com/spreadsheets/d/1aN6CBIR3JCemOshwFxCPm51Av_Dl1n54R1WqvoJMIL4/edit?usp=sharing
-- Zap اسمه: AI Meeting Follow-up & Routing
+## 1. الأدوات المستخدمة
 
+- **Google Forms:** نموذج `Meeting Follow-up Form`  https://forms.gle/2kLSZj3ZvfAJ6AAZ6
+- **Google Sheets:** جدول `Meeting Follow-up Records`، ويحتوي على 15 عمودًا.  
+ https://docs.google.com/spreadsheets/d/1aN6CBIR3JCemOshwFxCPm51Av_Dl1n54R1WqvoJMIL4/edit?usp=sharing
+- **Zapier:** أتمتة باسم `AI Meeting Follow-up & Routing`.
 
-## خطوات الـ Zap
-1. Google Forms - New Form Response
-2. AI by Zapier - Extract follow-up action from meeting notes. حطيت Meeting Notes جوا الـ Prompt مباشرة، لأن الواجهة الجديدة ما فيها Data In منفصل. الـ Output Fields الستة من نوع Text.
-3. Paths by Zapier
-   - Valid Request: request_status Exactly matches VALID
-     - Google Sheets - Create Spreadsheet Row (requires_human = false, routing = send_followup)
-     - Gmail - Send Email
-   - Fallback (Needs Human Review)
-     - Google Sheets - Create Spreadsheet Row (requires_human = true, routing = human_review)
-     - Gmail - Send Email
+## 2. خطوات الأتمتة (Zap Workflow)
 
-## الاختبارات
-كل اختبار عملته من الـ Form بعد ما نشرت الـ Zap (Publish).
+### الخطوة الأولى: استقبال الرد
+**Google Forms — New Form Response**
 
-| Test | Meeting Notes | Expected | Actual status | Result |
+يبدأ التشغيل عند وصول استجابة جديدة من النموذج.
+
+### الخطوة الثانية: استخراج المعلومات باستخدام الذكاء الاصطناعي
+**AI by Zapier — Extract follow-up action from meeting notes**
+
+أُدرجت ملاحظات الاجتماع مباشرةً داخل الـ Prompt، لأن الواجهة المستخدمة لا توفر حقلًا منفصلًا باسم `Data In`. كما أُعدّت ستة حقول للمخرجات، جميعها من نوع `Text`.
+
+### الخطوة الثالثة: تحديد المسار
+**Paths by Zapier**
+
+يحتوي الـ Zap على مسارين:
+
+- **Valid Request:** يُختار عندما تطابق قيمة `request_status` النص `VALID` تمامًا.
+  - تسجيل البيانات في Google Sheets باستخدام `Create Spreadsheet Row`، مع تعيين `requires_human = false` و`routing = send_followup`.
+  - إرسال رسالة بريد إلكتروني باستخدام Gmail.
+
+- **Fallback (Needs Human Review):** يُستخدم عندما لا تطابق الحالة القيمة `VALID`.
+  - تسجيل البيانات في Google Sheets باستخدام `Create Spreadsheet Row`، مع تعيين `requires_human = true` و`routing = human_review`.
+  - إرسال رسالة بريد إلكتروني إلى منظِّمة الاجتماع لمراجعة المعلومات الناقصة.
+
+## 3. الاختبارات ونتائجها
+
+نُفِّذت الاختبارات الخمسة من خلال النموذج بعد نشر الـ Zap باستخدام `Publish`.
+
+| الاختبار | ملاحظات الاجتماع | النتيجة المتوقعة | النتيجة الفعلية | الحالة |
 |---|---|---|---|---|
-| 01 | Sara will send the updated proposal to the client by Friday. | VALID | VALID, missing = NONE | PASS |
-| 02 | Sara will send the updated proposal to the client. | NEEDS_REVIEW | NEEDS_REVIEW, missing = deadline | PASS |
-| 03 | The updated proposal must be sent to the client by Friday. | NEEDS_REVIEW | NEEDS_REVIEW, missing = owner | PASS |
-| 04 | Sara will send the proposal as soon as possible. | NEEDS_REVIEW | NEEDS_REVIEW, missing = deadline | PASS |
-| 05 | We discussed the project budget. | NEEDS_REVIEW | NEEDS_REVIEW, missing = action_item, owner, deadline | PASS |
+| 01 | Sara will send the updated proposal to the client by Friday. | `VALID` | `VALID`، والمعلومات الناقصة: `NONE` | PASS |
+| 02 | Sara will send the updated proposal to the client. | `NEEDS_REVIEW` | `NEEDS_REVIEW`، والموعد النهائي مفقود | PASS |
+| 03 | The updated proposal must be sent to the client by Friday. | `NEEDS_REVIEW` | `NEEDS_REVIEW`، والمسؤول مفقود | PASS |
+| 04 | Sara will send the proposal as soon as possible. | `NEEDS_REVIEW` | `NEEDS_REVIEW`، والموعد النهائي مفقود | PASS |
+| 05 | We discussed the project budget. | `NEEDS_REVIEW` | `NEEDS_REVIEW`، والمهمة والمسؤول والموعد النهائي مفقودة | PASS |
 
-في اختبار 04 قالت الجملة "as soon as possible" وAI ما حوّلها لموعد، فضل الموعد فاضي وطلع NEEDS_REVIEW.
+في الاختبار الرابع، لم يتعامل الذكاء الاصطناعي مع عبارة `as soon as possible` باعتبارها موعدًا نهائيًا محددًا، بل ترك الموعد فارغًا وصنّف الحالة على أنها `NEEDS_REVIEW`.
 
-## المشاكل اللي واجهتها
+**نتيجة الاختبارات:** اجتازت الحالات الخمس الاختبارات وفق النتائج المتوقعة.
 
-1. **اخترت Clear بدل Create:** في الـ Fallback path اخترت بالغلط Event اسمه Clear Spreadsheet Row(s) بدل Create Spreadsheet Row. هاد كان بدو يمسح صفوف من الـ Sheet مش يضيف صف. لاحظت إنه طالب حقل Row(s) وهاد مش موجود في Create، فرجعت لتبويب Setup وغيّرت الـ Event لـ Create Spreadsheet Row.
+## 4. المشكلات التي واجهتني أثناء التنفيذ
 
-2. **القيمة الفارغة بدل NOT_PROVIDED:** كان تصميمي إن الحقل الناقص (action_item أو owner أو deadline) يرجع بكلمة NOT_PROVIDED، وعدّلت الـ Prompt على هالأساس. بس بالتنفيذ الفعلي لسا بيطلع الحقل فاضي في الـ Sheet. هاي مشكلة لسا ما انحلّت. تأثيرها محدود: missing_information و request_status بيطلعوا صح، فالقرار والمسار سليمين، والخلية الفاضية بس شكلها مش واضح. الحل اللي لسا بدي أجربه هو تعديل إعدادات الـ Output Fields أو إضافة خطوة تحويل القيمة الفاضية.
+### 4.1 اختيار حدث غير صحيح في Google Sheets
 
-3. **missing_information كان بيطلع فاضي:** بعد ما أطفيت Required عن الحقول، صار هالحقل بيطلع فاضي أحيانًا. انحلت بعد تعديل إعدادات الـ Output Fields وإعادة الاختبار، وهلأ بيطلع صح في كل الاختبارات.
+في مسار `Fallback`، اخترت بالخطأ الحدث `Clear Spreadsheet Row(s)` بدلًا من `Create Spreadsheet Row`. كان الحدث الأول مخصصًا لمسح الصفوف، وليس إضافة صف جديد.
 
-4. **Required في Output Fields:** أطفيت Required عن action_item و owner و deadline عشان AI ما يضطر يخترع قيمة لو المعلومة مش موجودة.
+لاحظت وجود حقل `Row(s)`، وهو ما ساعدني على اكتشاف الاختيار غير الصحيح. بعد ذلك، عدت إلى تبويب `Setup` وغيّرت الحدث إلى `Create Spreadsheet Row`.
 
-5. **processed_at:** ما لقيت Zap Meta في الواجهة، فاستخدمت Create Time من الـ Trigger. هاد الوقت بتوقيت UTC.
+### 4.2 ظهور القيم الناقصة فارغة بدلًا من `NOT_PROVIDED`
 
-6. **إيميل التجربة:** وقت الاختبار كان حقل To هو إيميلي الشخصي.
+كان التصميم الأولي يقتضي أن يُرجع الذكاء الاصطناعي القيمة `NOT_PROVIDED` عند غياب معلومات مثل `action_item` أو `owner` أو `deadline`. وعدّلت الـ Prompt لتحقيق ذلك، لكن الحقول ظلت تظهر فارغة في Google Sheets.
 
-## اللي تعلمته
-لما شي ما اشتغل، ما غيّرت كل شي عشوائي. دوّرت على أول مكان طلعت فيه نتيجة غلط (AI، ولا Path، ولا Mapping، ولا Email)، وهيك لقيت إن مشكلة Clear كانت في اختيار الـ Event مش في البيانات.
+لم تُحل هذه المشكلة بعد. ومع ذلك، فإن تأثيرها محدود؛ لأن حقلي `missing_information` و`request_status` يعرضان المعلومات اللازمة لاتخاذ القرار وتحديد المسار الصحيح.
+
+**الحل المقترح للتجربة لاحقًا:** تعديل إعدادات `Output Fields` أو إضافة خطوة لتحويل القيم الفارغة إلى `NOT_PROVIDED`.
+
+### 4.3 ظهور حقل `missing_information` فارغًا
+
+كان هذا الحقل يظهر فارغًا في بعض الاختبارات بعد إيقاف خيار `Required` عن الحقول. عولجت المشكلة بتعديل إعدادات `Output Fields` وإعادة الاختبار، وأصبح الحقل يعرض المعلومات الناقصة بصورة صحيحة في الاختبارات المنفَّذة.
+
+### 4.4 إعداد الحقول المطلوبة
+
+أوقفت خيار `Required` عن الحقول `action_item` و`owner` و`deadline`، حتى لا يُضطر الذكاء الاصطناعي إلى اختلاق قيم عندما لا تتوفر المعلومات في ملاحظات الاجتماع.
+
+### 4.5 تسجيل وقت المعالجة
+
+لم أجد خيار `Zap Meta` في الواجهة المستخدمة، لذلك استخدمت حقل `Create Time` من المشغّل لتسجيل وقت إنشاء الاستجابة. يُسجَّل هذا الوقت وفق توقيت UTC.
+
+### 4.6 استخدام البريد الشخصي أثناء الاختبار
+
+استخدمت بريدي الإلكتروني الشخصي في حقل `To` أثناء اختبار إرسال الرسائل.
+
+
+وقد ساعدني هذا الأسلوب على اكتشاف أن مشكلة مسح الصفوف كانت ناتجة عن اختيار الحدث غير الصحيح في Google Sheets، وليس عن البيانات نفسها.
+
+كما تعلمت أن نجاح الأتمتة لا يعتمد فقط على تنفيذ الخطوات، بل يتطلب اختبار الحالات المختلفة، وتوثيق المشكلات التي لم تُحل بعد، والتمييز بين ما يعمل فعليًا وما يزال بحاجة إلى تحسين.
